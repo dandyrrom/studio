@@ -117,30 +117,22 @@ export default function SignUpPage() {
                         defaultValue={field.value}
                         className="grid grid-cols-2 gap-4"
                       >
-                        <FormItem>
-                          <FormControl>
-                            <RadioGroupItem value="client" id="client" className="sr-only" />
-                          </FormControl>
-                          <Label
-                            htmlFor="client"
-                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                          >
-                            <User className="mb-3 h-6 w-6" />
-                            Client
-                          </Label>
-                        </FormItem>
-                        <FormItem>
-                          <FormControl>
-                            <RadioGroupItem value="supplier" id="supplier" className="sr-only" />
-                          </FormControl>
-                          <Label
-                            htmlFor="supplier"
-                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
-                          >
-                            <Building className="mb-3 h-6 w-6" />
-                            Supplier
-                          </Label>
-                        </FormItem>
+                        <Label
+                          htmlFor="client"
+                          className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                        >
+                          <RadioGroupItem value="client" id="client" className="sr-only" />
+                          <User className="mb-3 h-6 w-6" />
+                          Client
+                        </Label>
+                        <Label
+                          htmlFor="supplier"
+                          className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                        >
+                          <RadioGroupItem value="supplier" id="supplier" className="sr-only" />
+                          <Building className="mb-3 h-6 w-6" />
+                          Supplier
+                        </Label>
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
