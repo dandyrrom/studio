@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
     ],
   },
   env: {
-    FIREBASE_CONFIG: JSON.stringify(firebaseConfig),
+    NEXT_PUBLIC_FIREBASE_CONFIG: JSON.stringify(firebaseConfig),
   }
 };
 
