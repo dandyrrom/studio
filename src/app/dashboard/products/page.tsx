@@ -107,14 +107,19 @@ export default function ProductsPage() {
                 products.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="hidden sm:table-cell">
-                      <Image
-                        alt={product.name}
-                        className="aspect-square rounded-md object-cover"
-                        height="64"
-                        src={product.imageUrl}
-                        width="64"
-                        data-ai-hint={product.imageHint}
-                      />
+                      {product.imageDataUrl && product.imageDataUrl.length > 0 ? (
+                        <Image
+                          alt={product.name}
+                          className="aspect-square rounded-md object-cover"
+                          height={64}
+                          src={product.imageDataUrl}
+                          width={64}
+                        />
+                      ) : (
+                        <div className="aspect-square h-16 w-16 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                          No Image
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>${product.price.toFixed(2)}</TableCell>
