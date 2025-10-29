@@ -18,6 +18,9 @@
         "name": "next"
       }
     ],
+    // Prevent automatic inclusion of all ambient @types packages
+    // (this stops the TS server from trying to load types like "aws-lambda", "bunyan", etc.)
+    "types": [],
     "paths": {
       "@/*": ["./src/*"]
     }
@@ -25,3 +28,4 @@
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
+
