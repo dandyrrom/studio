@@ -31,7 +31,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-16 items-center justify-between px-6">
-        <h1 className="text-2xl font-bold text-primary">TradeFlow</h1>
+        <h1 className="text-2xl font-bold text-primary">HAULER</h1>
         <div className="space-x-2">
           <Button variant="ghost" asChild>
             <Link href="/login">Login</Link>
@@ -47,7 +47,7 @@ export default function Home() {
             Streamline Your Business Transactions
           </h2>
           <p className="mt-6 max-w-2xl mx-auto text-lg text-foreground/80 md:text-xl">
-            TradeFlow connects suppliers and clients on a seamless platform. Manage your catalog, process orders, and gain insights with AI-powered reports.
+            HAULER connects suppliers and clients on a seamless platform. Manage your catalog, process orders, and gain insights with AI-powered reports.
           </p>
           <div className="mt-10 flex justify-center gap-4">
             <Button size="lg" className="bg-primary hover:bg-primary/90" asChild>
@@ -77,7 +77,7 @@ export default function Home() {
         </div>
       </main>
       <footer className="py-6 px-6 text-center text-sm text-muted-foreground">
-        © {new Date().getFullYear()} TradeFlow. All rights reserved.
+        © {new Date().getFullYear()} HAULER. All rights reserved.
       </footer>
     </div>
   );

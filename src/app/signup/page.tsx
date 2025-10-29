@@ -16,6 +16,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Building } from 'lucide-react';
 import type { UserRole } from '@/lib/types';
+import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
   displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.' }),
@@ -60,7 +61,7 @@ export default function SignUpPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">Create an Account</CardTitle>
-          <CardDescription>Join TradeFlow to streamline your business.</CardDescription>
+          <CardDescription>Join HAULER to streamline your business.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>

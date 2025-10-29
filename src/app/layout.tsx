@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'TradeFlow',
+  title: 'HAULER',
   description: 'A modern B2B platform for suppliers and clients.',
 };
 

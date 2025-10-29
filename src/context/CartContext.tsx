@@ -22,14 +22,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const savedCart = localStorage.getItem('tradeflow_cart');
+    const savedCart = localStorage.getItem('hauler_cart');
     if (savedCart) {
       setCart(JSON.parse(savedCart));
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('tradeflow_cart', JSON.stringify(cart));
+    localStorage.setItem('hauler_cart', JSON.stringify(cart));
   }, [cart]);
 
   const addToCart = (product: Product, quantity: number) => {

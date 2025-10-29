@@ -45,7 +45,7 @@ export default function DashboardLayout({
       <Sidebar>
         <SidebarHeader>
           <Link href="/dashboard" className="block">
-            <h1 className="text-2xl font-bold text-sidebar-foreground px-2">TradeFlow</h1>
+            <h1 className="text-2xl font-bold text-sidebar-foreground px-2">HAULER</h1>
           </Link>
         </SidebarHeader>
         <SidebarContent>
