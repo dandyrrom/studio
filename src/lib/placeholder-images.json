@@ -1,3 +1,52 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "product-1",
+      "description": "A generic product image.",
+      "imageUrl": "https://images.unsplash.com/photo-1563062067-d1d4e31a089e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxpbmR1c3RyaWFsJTIwZ2VhcnxlbnwwfHx8fDE3NjE3MzAxMTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "industrial gear"
+    },
+    {
+      "id": "product-2",
+      "description": "A generic product image.",
+      "imageUrl": "https://images.unsplash.com/photo-1609867271967-a82f85c48531?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb25zdHJ1Y3Rpb24lMjBtYXRlcmlhbHN8ZW58MHx8fHwxNzYxNzMwMTE4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "construction materials"
+    },
+    {
+      "id": "product-3",
+      "description": "A generic product image.",
+      "imageUrl": "https://images.unsplash.com/photo-1683115099413-5b7d85c2950c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx0b29scyUyMGVxdWlwbWVudHxlbnwwfHx8fDE3NjE3MzAxMTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tools equipment"
+    },
+    {
+      "id": "product-4",
+      "description": "A generic product image.",
+      "imageUrl": "https://images.unsplash.com/photo-1649807479468-40011b31ee09?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxoZWF2eSUyMG1hY2hpbmVyeXxlbnwwfHx8fDE3NjE2NTY5Mjh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "heavy machinery"
+    },
+    {
+      "id": "product-5",
+      "description": "A generic product image.",
+      "imageUrl": "https://images.unsplash.com/photo-1662309376159-b95fb193d96b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzYWZldHklMjBlcXVpcG1lbnR8ZW58MHx8fHwxNzYxNzMwMTE4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "safety equipment"
+    },
+    {
+      "id": "product-6",
+      "description": "A generic product image.",
+      "imageUrl": "https://images.unsplash.com/photo-1513828646384-e4d8ec30d2bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxpbmR1c3RyaWFsJTIwcGlwZXN8ZW58MHx8fHwxNzYxNzI0MTgwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "industrial pipes"
+    },
+    {
+      "id": "product-7",
+      "description": "A generic product image.",
+      "imageUrl": "https://images.unsplash.com/photo-1597260491590-7a542ff29bdd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxlbGVjdHJpY2FsJTIwY29tcG9uZW50c3xlbnwwfHx8fDE3NjE3MzAxMTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "electrical components"
+    },
+    {
+      "id": "product-8",
+      "description": "A generic product image.",
+      "imageUrl": "https://images.unsplash.com/photo-1668874184010-87aa286683dd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidWlsZGluZyUyMHN1cHBsaWVzfGVufDB8fHx8MTc2MTczMDExOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "building supplies"
+    }
+  ]
 }
