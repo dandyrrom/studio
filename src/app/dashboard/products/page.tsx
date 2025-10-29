@@ -68,7 +68,7 @@ export default function ProductsPage() {
   return (
     <>
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Manage Products</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Manage Products DEMO IN THE WAY</h2>
         <Button onClick={handleAddProduct}>
           <PlusCircle className="mr-2 h-4 w-4" /> Add Product
         </Button>

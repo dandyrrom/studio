@@ -1,4 +1,3 @@
-
 import type { User as FirebaseUser } from 'firebase/auth';
 
 export type UserRole = 'supplier' | 'client';
@@ -15,8 +14,7 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  imageUrl: string;
-  imageHint: string;
+  imageDataUrl?: string; // Changed from imageUrl/imageHint
   supplierId: string;
   supplierName: string;
 }
@@ -32,9 +30,16 @@ export interface Order {
   id: string;
   clientId: string;
   clientName: string;
-  items: CartItem[];
+  // Note: If Order items include Product, ensure it also uses imageDataUrl
+  items: Array<{
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+    // Consider if you need image data in the order item itself
+  }>;
   total: number;
   status: OrderStatus;
-  createdAt: Date;
-  supplierId: string; 
+  createdAt: Date; // Keep as Date if handled correctly on fetch, otherwise consider storing as Timestamp or ISO string
+  supplierId: string;
 }
