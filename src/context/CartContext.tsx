@@ -33,31 +33,30 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, [cart]);
 
   const addToCart = (product: Product, quantity: number) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.product.id === product.id);
-      
-      if (prevCart.length > 0 && prevCart[0].product.supplierId !== product.supplierId) {
-        toast({
-            variant: "destructive",
-            title: "Error adding to cart",
-            description: "You can only order from one supplier at a time. Please clear your cart to add items from a different supplier.",
-        });
-        return prevCart;
-      }
+    const existingItem = cart.find((item) => item.product.id === product.id);
 
-      if (existingItem) {
-        const newCart = prevCart.map((item) =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-        toast({ title: "Cart updated", description: `${product.name} quantity increased.` });
-        return newCart;
-      } else {
-        toast({ title: "Item added", description: `${product.name} added to cart.` });
-        return [...prevCart, { product, quantity }];
-      }
-    });
+    if (cart.length > 0 && cart[0].product.supplierId !== product.supplierId) {
+      toast({
+        variant: "destructive",
+        title: "Error adding to cart",
+        description: "You can only order from one supplier at a time. Please clear your cart to add items from a different supplier.",
+      });
+      return;
+    }
+
+    if (existingItem) {
+      const newCart = cart.map((item) =>
+        item.product.id === product.id
+          ? { ...item, quantity: item.quantity + quantity }
+          : item
+      );
+      setCart(newCart);
+      toast({ title: "Cart updated", description: `${product.name} quantity increased.` });
+    } else {
+      const newCart = [...cart, { product, quantity }];
+      setCart(newCart);
+      toast({ title: "Item added", description: `${product.name} added to cart.` });
+    }
   };
 
   const removeFromCart = (productId: string) => {

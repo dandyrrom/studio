@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import type { Order, OrderStatus } from '@/lib/types';
@@ -18,6 +18,7 @@ export default function OrdersPage() {
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [supplierNames, setSupplierNames] = useState<Record<string, string>>({});
 
   const fetchOrders = async () => {
     if (!userProfile) return;
@@ -39,6 +40,27 @@ export default function OrdersPage() {
         } as Order;
       });
       setOrders(ordersList);
+
+      // Preload supplier names for client view
+      if (userProfile.role === 'client') {
+        const ids = Array.from(new Set(
+          ordersList
+            .map(o => o.supplierId)
+            .filter((id): id is string => typeof id === 'string' && id.length > 0)
+        ));
+        if (ids.length > 0) {
+          const entries = await Promise.all(ids.map(async (uid) => {
+            try {
+              const snap = await getDoc(doc(db, 'users', uid));
+              const name = (snap.exists() ? (snap.data() as any).displayName : null) || 'Supplier';
+              return [uid, name] as const;
+            } catch {
+              return [uid, 'Supplier'] as const;
+            }
+          }));
+          setSupplierNames(Object.fromEntries(entries));
+        }
+      }
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch orders.' });
@@ -115,8 +137,8 @@ export default function OrdersPage() {
               ) : orders.length > 0 ? (
                 orders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-mono text-xs">...{order.id.slice(-6)}</TableCell>
-                    <TableCell>{isSupplier ? order.clientName : order.items[0]?.product.supplierName}</TableCell>
+                    <TableCell className="font-mono text-xs">{order.id}</TableCell>
+                    <TableCell>{isSupplier ? (order.clientName || 'Unknown client') : (supplierNames[order.supplierId] || 'Supplier')}</TableCell>
                     <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>${order.total.toFixed(2)}</TableCell>
                     <TableCell>

@@ -76,14 +76,19 @@ export default function CartPage() {
               <CardContent className="divide-y">
                 {cart.map((item) => (
                   <div key={item.product.id} className="flex items-center py-4">
-                    <Image
-                      src={item.product.imageUrl}
-                      alt={item.product.name}
-                      width={80}
-                      height={80}
-                      className="rounded-md object-cover"
-                      data-ai-hint={item.product.imageHint}
-                    />
+                    {item.product.imageDataUrl && item.product.imageDataUrl.length > 0 ? (
+                      <Image
+                        src={item.product.imageDataUrl}
+                        alt={item.product.name}
+                        width={80}
+                        height={80}
+                        className="rounded-md object-cover"
+                      />
+                    ) : (
+                      <div className="h-20 w-20 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                        No Image
+                      </div>
+                    )}
                     <div className="ml-4 flex-1">
                       <p className="font-semibold">{item.product.name}</p>
                       <p className="text-sm text-muted-foreground">${item.product.price.toFixed(2)}</p>
