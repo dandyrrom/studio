@@ -17,6 +17,10 @@ export interface Product {
   price: number;
   imageDataUrl?: string;
   stockQuantity: number; // <-- ADDED THIS LINE
+<<<<<<< HEAD
+=======
+  moq: number;
+>>>>>>> cmb-sidev1
   supplierId: string;
   supplierName: string;
 }

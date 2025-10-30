@@ -35,13 +35,22 @@ export default function ProductsPage() {
     if (!userProfile) return;
     setLoading(true);
     try {
-      const q = query(collection(db, 'products'), where('supplierId', '==', userProfile.uid));
+      const q = query(
+        collection(db, "products"),
+        where("supplierId", "==", userProfile.uid)
+      );
       const querySnapshot = await getDocs(q);
-      const productsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      const productsList = querySnapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() } as Product)
+      );
       setProducts(productsList);
     } catch (error) {
       console.error("Error fetching products: ", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch products.' });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch products.",
+      });
     } finally {
       setLoading(false);
     }
@@ -62,11 +71,11 @@ export default function ProductsPage() {
     setSelectedProduct(product);
     setIsDialogOpen(true);
   };
-  
+
   const handleDeleteProduct = async (productId: string) => {
     try {
-      await deleteDoc(doc(db, 'products', productId));
-      toast({ title: 'Success', description: 'Product deleted successfully.' });
+      await deleteDoc(doc(db, "products", productId));
+      toast({ title: "Success", description: "Product deleted successfully." });
       fetchProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
@@ -251,7 +260,9 @@ export default function ProductsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Product Catalog</CardTitle>
-          <CardDescription>View, edit, and manage all your products.</CardDescription>
+          <CardDescription>
+            View, edit, and manage all your products.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -311,8 +322,8 @@ export default function ProductsPage() {
           </CardFooter>
         )}
       </Card>
-      
-      <AddProductDialog 
+
+      <AddProductDialog
         isOpen={isDialogOpen}
         setIsOpen={setIsDialogOpen}
         product={selectedProduct}
