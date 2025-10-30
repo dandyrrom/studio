@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,10 +5,12 @@ import { collection, query, where, getDocs, limit, orderBy } from 'firebase/fire
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { DollarSign, Package, ShoppingCart, Users } from 'lucide-react';
+// --- THIS LINE IS FIXED ---
+import { DollarSign, Package, ShoppingCart, Users, Clock, PackageX, Award } from 'lucide-react'; // Removed BarChart, replaced PackageWarning
+// ---
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import type { Order } from '@/lib/types';
+import type { Order, Product } from '@/lib/types'; // Import Product type
 import { Skeleton } from '@/components/ui/skeleton';
 
 const chartData = [
@@ -27,9 +28,20 @@ const chartData = [
   { name: 'Dec', total: 0 },
 ];
 
+// Define low stock threshold
+const LOW_STOCK_THRESHOLD = 10;
+
 export default function SupplierDashboard() {
   const { userProfile } = useAuth();
-  const [stats, setStats] = useState({ totalRevenue: 0, totalSales: 0, activeProducts: 0, newClients: 0 });
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalSales: 0,
+    activeProducts: 0,
+    newClients: 0,
+    pendingOrders: 0,
+    lowStockItems: 0,
+    topClientName: 'N/A',
+  });
   const [recentSales, setRecentSales] = useState<Order[]>([]);
   const [salesByMonth, setSalesByMonth] = useState(chartData);
   const [loading, setLoading] = useState(true);
@@ -40,68 +52,89 @@ export default function SupplierDashboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
+        // --- 1. Fetch Orders ---
         const ordersQuery = query(collection(db, 'orders'), where('supplierId', '==', userProfile.uid));
         const ordersSnapshot = await getDocs(ordersQuery);
         
         let totalRevenue = 0;
+        let pendingOrders = 0;
         const salesByMonthData = [...chartData];
         const clientIds = new Set<string>();
+        const clientRevenue = new Map<string, { name: string, total: number }>();
 
         ordersSnapshot.forEach(doc => {
-          const data = doc.data() as any;
-          const total = typeof data.total === 'number' ? data.total : Number(data.total) || 0;
-          const createdAt: Date | null = data.createdAt?.toDate
-            ? data.createdAt.toDate()
-            : (data.createdAt ? new Date(data.createdAt) : null);
-          const status = data.status as Order['status'];
-
-          if(status === 'delivered' || status === 'shipped') {
-            totalRevenue += total;
-            if (createdAt && !Number.isNaN(createdAt.getTime())) {
-              const month = createdAt.getMonth();
-              if (month >= 0 && month < salesByMonthData.length) {
-                if (!salesByMonthData[month]) {
-                  salesByMonthData[month] = { name: chartData[month]?.name || String(month + 1), total: 0 } as any;
-                }
-                salesByMonthData[month].total += total;
-              }
-            }
+          const data = doc.data();
+          // Ensure createdAt is converted from Timestamp
+          const order = {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+          } as Order;
+          
+          if(order.status === 'delivered' || order.status === 'shipped') {
+            totalRevenue += order.total;
+            const month = new Date(order.createdAt).getMonth();
+            salesByMonthData[month].total += order.total;
           }
-          if (typeof data.clientId === 'string' && data.clientId.length > 0) {
-            clientIds.add(data.clientId);
+
+          if (order.status === 'pending') {
+            pendingOrders++;
+          }
+
+          clientIds.add(order.clientId);
+
+          // Aggregate client revenue
+          const currentClient = clientRevenue.get(order.clientId);
+          const newTotal = (currentClient?.total || 0) + order.total;
+          if (order.clientName) { // Only add if clientName exists
+            clientRevenue.set(order.clientId, { name: order.clientName, total: newTotal });
           }
         });
         
         setSalesByMonth(salesByMonthData);
 
+        // Find top client
+        let topClientName = 'N/A';
+        let maxRevenue = 0;
+        clientRevenue.forEach((client) => {
+          if (client.total > maxRevenue) {
+            maxRevenue = client.total;
+            topClientName = client.name;
+          }
+        });
+
+        // --- 2. Fetch Products ---
         const productsQuery = query(collection(db, 'products'), where('supplierId', '==', userProfile.uid));
         const productsSnapshot = await getDocs(productsQuery);
+        
+        let lowStockItems = 0;
+        productsSnapshot.forEach(doc => {
+          const product = doc.data() as Product;
+          if (product.stockQuantity <= LOW_STOCK_THRESHOLD) {
+            lowStockItems++;
+          }
+        });
 
+        // --- 3. Set All Stats ---
         setStats({
           totalRevenue,
           totalSales: ordersSnapshot.size,
           activeProducts: productsSnapshot.size,
           newClients: clientIds.size,
+          pendingOrders,
+          lowStockItems,
+          topClientName,
         });
 
-        const recentSalesQuery = query(
-          collection(db, 'orders'),
-          where('supplierId', '==', userProfile.uid),
-          orderBy('createdAt', 'desc'),
-          limit(5)
-        );
+        // --- 4. Fetch Recent Sales ---
+        const recentSalesQuery = query(collection(db, 'orders'), where('supplierId', '==', userProfile.uid), orderBy('createdAt', 'desc'), limit(5));
         const recentSalesSnapshot = await getDocs(recentSalesQuery);
-        const sales = recentSalesSnapshot.docs.map(d => {
-          const data = d.data() as any;
-          const createdAt: Date | null = data.createdAt?.toDate
-            ? data.createdAt.toDate()
-            : (data.createdAt ? new Date(data.createdAt) : null);
-          const total = typeof data.total === 'number' ? data.total : Number(data.total) || 0;
+        const sales = recentSalesSnapshot.docs.map(doc => {
+          const data = doc.data();
           return {
-            id: d.id,
+            id: doc.id,
             ...data,
-            createdAt: createdAt || new Date(0),
-            total,
+            createdAt: data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
           } as Order;
         });
         setRecentSales(sales);
@@ -120,9 +153,13 @@ export default function SupplierDashboard() {
   return (
     <div className="space-y-6">
       <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+      
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {loading ? (
           <>
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
             <Skeleton className="h-32" />
             <Skeleton className="h-32" />
             <Skeleton className="h-32" />
@@ -137,17 +174,37 @@ export default function SupplierDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">From all completed sales</p>
+                <p className="text-xs text-muted-foreground">From completed sales</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Sales</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
                 <ShoppingCart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">+{stats.totalSales}</div>
                 <p className="text-xs text-muted-foreground">Total orders received</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingOrders}</div>
+                <p className="text-xs text-muted-foreground">Orders awaiting action</p>
+              </CardContent>
+            </Card>
+             <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Unique Clients</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">+{stats.newClients}</div>
+                <p className="text-xs text-muted-foreground">Clients who have ordered</p>
               </CardContent>
             </Card>
             <Card>
@@ -162,12 +219,22 @@ export default function SupplierDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Unique IV Clients</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+                <PackageX className="h-4 w-4 text-muted-foreground" /> {/* <-- FIXED ICON */}
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+{stats.newClients}</div>
-                <p className="text-xs text-muted-foreground">Clients who have ordered</p>
+                <div className="text-2xl font-bold">{stats.lowStockItems}</div>
+                <p className="text-xs text-muted-foreground">Items with ≤{LOW_STOCK_THRESHOLD} in stock</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Top Client</CardTitle>
+                <Award className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold truncate">{stats.topClientName}</div>
+                <p className="text-xs text-muted-foreground">By total revenue</p>
               </CardContent>
             </Card>
           </>
@@ -182,6 +249,7 @@ export default function SupplierDashboard() {
           <CardContent className="pl-2">
             {loading ? <Skeleton className="h-[350px]" /> :
             <ResponsiveContainer width="100%" height={350}>
+              {/* This BarChart component is from recharts and is now correctly identified */}
               <BarChart data={salesByMonth}>
                 <XAxis
                   dataKey="name"
@@ -205,7 +273,7 @@ export default function SupplierDashboard() {
         <Card className="col-span-4 lg:col-span-3">
           <CardHeader>
             <CardTitle>Recent Sales</CardTitle>
-            <CardDescription>You made {recentSales.length} sales recently.</CardDescription>
+            <CardDescription>Your 5 most recent orders.</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? <div className="space-y-4">
@@ -217,7 +285,7 @@ export default function SupplierDashboard() {
               {recentSales.map(sale => (
                 <div key={sale.id} className="flex items-center">
                   <Avatar className="h-9 w-9">
-                    <AvatarFallback>{sale.clientName.substring(0,2)}</AvatarFallback>
+                    <AvatarFallback>{sale.clientName?.substring(0,2) || '??'}</AvatarFallback>
                   </Avatar>
                   <div className="ml-4 space-y-1">
                     <p className="text-sm font-medium leading-none">{sale.clientName}</p>

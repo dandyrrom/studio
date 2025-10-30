@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -7,7 +6,7 @@ import {
   LayoutDashboard,
   Package,
   ShoppingCart,
-  Users,
+  Users, // <-- IMPORTED
   BarChart,
   ShoppingBag
 } from 'lucide-react';
@@ -42,12 +41,15 @@ export function DashboardNav() {
     { href: '/dashboard/cart', label: 'Cart', icon: ShoppingCart, badge: itemCount > 0 ? itemCount : undefined },
   ];
 
+  // --- UPDATED SUPPLIER LINKS ---
   const supplierLinks: NavLink[] = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/products', label: 'Manage Products', icon: Package },
     { href: '/dashboard/orders', label: 'Manage Orders', icon: ShoppingCart },
+    { href: '/dashboard/clients', label: 'Clients', icon: Users }, // <-- ADDED THIS LINK
     { href: '/dashboard/reports', label: 'AI Reports', icon: BarChart },
   ];
+  // --- END UPDATED LINKS ---
 
   const links: NavLink[] = userProfile?.role === 'supplier' ? supplierLinks : clientLinks;
 

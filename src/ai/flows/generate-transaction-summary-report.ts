@@ -1,59 +1,72 @@
 'use server';
 
 /**
- * @fileOverview Generates a summary report of transaction history for a supplier using AI.
- * 
+ * @fileOverview Generates a structured sales analysis report for a supplier using AI.
  * - generateTransactionSummaryReport - A function that generates the transaction summary report.
- * - GenerateTransactionSummaryReportInput - The input type for the generateTransactionSummaryReport function.
- * - GenerateTransactionSummaryReportOutput - The return type for the generateTransactionSummaryReport function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-const GenerateTransactionSummaryReportInputSchema = z.object({
-  transactionHistory: z
-    .string()
-    .describe('The transaction history data, as a JSON string.'),
-});
-export type GenerateTransactionSummaryReportInput = z.infer<
-  typeof GenerateTransactionSummaryReportInputSchema
->;
-
-const GenerateTransactionSummaryReportOutputSchema = z.object({
-  summaryReport: z.string().describe('The generated summary report.'),
-});
-export type GenerateTransactionSummaryReportOutput = z.infer<
-  typeof GenerateTransactionSummaryReportOutputSchema
->;
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+import {
+  type ReportInput,
+  ReportInputSchema,
+  type ReportOutput,
+  ReportOutputSchema,
+} from '@/lib/types';
 
 export async function generateTransactionSummaryReport(
-  input: GenerateTransactionSummaryReportInput
-): Promise<GenerateTransactionSummaryReportOutput> {
+  input: ReportInput
+): Promise<ReportOutput> {
   return generateTransactionSummaryReportFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateTransactionSummaryReportPrompt',
-  input: {schema: GenerateTransactionSummaryReportInputSchema},
-  output: {schema: GenerateTransactionSummaryReportOutputSchema},
-  prompt: `You are an expert in analyzing transaction history and generating summary reports.
+const salesAnalystPrompt = ai.definePrompt({
+  name: 'salesAnalystPrompt',
+  input: { schema: ReportInputSchema },
+  output: { schema: ReportOutputSchema },
+  prompt: `You are a professional B2B sales analyst. Your goal is to provide a concise, insightful, and actionable report for a supplier based on their sales data for the period {{dateRange.from}} to {{dateRange.to}}.
 
-  Analyze the following transaction history and generate a concise summary report highlighting key sales performance indicators and trends.
+Here is the pre-processed sales summary:
+- Total Revenue: \${{totalRevenue}}
+- Total Orders: {{totalOrders}}
+- Average Order Value: \${{averageOrderValue}}
+- Total Unique Clients: {{totalClients}}
+- Top Selling Items (up to 5): {{topSellingItems}}  // <-- *** THIS IS THE CORRECTED LINE ***
 
-  Transaction History: {{{transactionHistory}}}
+Analyze this data and generate a report.
 
-  Summary Report:`,
+Guidelines:
+- The headline should be a single, impactful sentence.
+- Key insights must be data-driven and concise.
+- Actionable suggestions should be practical and based on the insights.
+- The sales trend should be a simple, one-sentence description.
+- Return the key metric numbers (totalRevenue, totalOrders, averageOrderValue) as provided in the input.
+
+Return ONLY a valid JSON object matching the output schema.
+`,
 });
 
 const generateTransactionSummaryReportFlow = ai.defineFlow(
   {
     name: 'generateTransactionSummaryReportFlow',
-    inputSchema: GenerateTransactionSummaryReportInputSchema,
-    outputSchema: GenerateTransactionSummaryReportOutputSchema,
+    inputSchema: ReportInputSchema,
+    outputSchema: ReportOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    // If no orders, return a default state instead of calling AI
+    if (input.totalOrders === 0) {
+      return {
+        headline: "No sales data found for this period.",
+        salesTrend: "No sales activity recorded.",
+        keyInsights: ["There were no completed orders (shipped or delivered) in the selected date range."],
+        actionableSuggestions: ["Try expanding the date range.", "Check your 'Pending' orders on the Manage Orders page."],
+        totalRevenue: 0,
+        totalOrders: 0,
+        averageOrderValue: 0,
+      };
+    }
+
+    const { output } = await salesAnalystPrompt(input);
     return output!;
   }
 );
