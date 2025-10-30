@@ -91,12 +91,8 @@ const formSchema = z.object({
   name: z.string().min(3, { message: 'Product name must be at least 3 characters.' }),
   description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
   price: z.coerce.number().positive({ message: 'Price must be a positive number.' }),
-<<<<<<< HEAD
-  stockQuantity: z.coerce.number().int().nonnegative({ message: 'Stock must be 0 or more.' }), // <-- ADDED
-=======
   stockQuantity: z.coerce.number().int().nonnegative({ message: 'Stock must be 0 or more.' }),
   moq: z.coerce.number().int().positive({ message: 'MOQ must be at least 1.' }), // <-- ADDED
->>>>>>> cmb-sidev1
 });
 // --- END UPDATED SCHEMA ---
 
@@ -124,12 +120,8 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
       name: '',
       description: '',
       price: 0,
-<<<<<<< HEAD
-      stockQuantity: 0, // <-- ADDED
-=======
       stockQuantity: 0,
       moq: 1, // <-- ADDED
->>>>>>> cmb-sidev1
     },
   });
 
@@ -141,12 +133,8 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
                 name: product.name,
                 description: product.description,
                 price: product.price,
-<<<<<<< HEAD
-                stockQuantity: product.stockQuantity, // <-- ADDED
-=======
                 stockQuantity: product.stockQuantity,
                 moq: product.moq || 1, // <-- ADDED
->>>>>>> cmb-sidev1
             });
             setImageDataUrl(product.imageDataUrl || null);
         } else {
@@ -154,12 +142,8 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
                 name: '',
                 description: '',
                 price: 0,
-<<<<<<< HEAD
-                stockQuantity: 0, // <-- ADDED
-=======
                 stockQuantity: 0,
                 moq: 1, // <-- ADDED
->>>>>>> cmb-sidev1
             });
             setImageDataUrl(null);
         }
@@ -196,12 +180,8 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
         name: values.name,
         description: values.description,
         price: values.price,
-<<<<<<< HEAD
-        stockQuantity: values.stockQuantity, // <-- ADDED
-=======
         stockQuantity: values.stockQuantity,
         moq: values.moq, // <-- ADDED
->>>>>>> cmb-sidev1
         imageDataUrl: finalImageDataUrl || null,
         supplierId: userProfile.uid,
         supplierName: userProfile.displayName || 'Unknown Supplier',
@@ -266,13 +246,8 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
                 </FormItem>
               )}
             />
-<<<<<<< HEAD
-            {/* --- PRICE AND STOCK ON SAME ROW --- */}
-            <div className="grid grid-cols-2 gap-4">
-=======
             {/* --- PRICE AND STOCK/MOQ ON SAME ROW --- */}
             <div className="grid grid-cols-3 gap-4">
->>>>>>> cmb-sidev1
               <FormField
                 control={form.control}
                 name="price"
@@ -291,11 +266,7 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
                 name="stockQuantity"
                 render={({ field }) => (
                   <FormItem>
-<<<<<<< HEAD
-                    <FormLabel>Stock Quantity</FormLabel>
-=======
                     <FormLabel>Stock Qty</FormLabel>
->>>>>>> cmb-sidev1
                     <FormControl>
                       <Input type="number" step="1" placeholder="100" {...field} />
                     </FormControl>
@@ -303,10 +274,6 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
                   </FormItem>
                 )}
               />
-<<<<<<< HEAD
-            </div>
-            {/* --- END PRICE/STOCK ROW --- */}
-=======
               <FormField
                 control={form.control}
                 name="moq"
@@ -322,7 +289,6 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
               />
             </div>
             {/* --- END PRICE/STOCK/MOQ ROW --- */}
->>>>>>> cmb-sidev1
 
              <FormItem>
                 <FormLabel>Product Image</FormLabel>
