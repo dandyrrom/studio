@@ -1,10 +1,9 @@
+"use client";
 
-'use client';
-
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
-import SupplierDashboard from '@/components/dashboard/SupplierDashboard';
-import ClientDashboard from '@/components/dashboard/ClientDashboard';
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
+import SupplierDashboard from "@/components/dashboard/SupplierDashboard";
+import ClientDashboard from "@/components/dashboard/ClientDashboard";
 
 export default function DashboardPage() {
   const { userProfile, loading } = useAuth();
@@ -17,5 +16,9 @@ export default function DashboardPage() {
     );
   }
 
-  return userProfile.role === 'supplier' ? <SupplierDashboard /> : <ClientDashboard />;
+  return userProfile.role === "supplier" ? (
+    <SupplierDashboard />
+  ) : (
+    <ClientDashboard />
+  );
 }

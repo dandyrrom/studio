@@ -1,10 +1,9 @@
+"use client";
 
-'use client';
-
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 import {
   SidebarProvider,
   Sidebar,
@@ -13,10 +12,10 @@ import {
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
-} from '@/components/ui/sidebar';
-import { DashboardNav } from '@/components/dashboard/DashboardNav';
-import { UserNav } from '@/components/dashboard/UserNav';
-import Link from 'next/link';
+} from "@/components/ui/sidebar";
+import { DashboardNav } from "@/components/dashboard/DashboardNav";
+import { UserNav } from "@/components/dashboard/UserNav";
+import Link from "next/link";
 
 export default function DashboardLayout({
   children,
@@ -28,7 +27,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [user, loading, router]);
 
@@ -45,15 +44,15 @@ export default function DashboardLayout({
       <Sidebar>
         <SidebarHeader>
           <Link href="/dashboard" className="block">
-            <h1 className="text-2xl font-bold text-sidebar-foreground px-2">HAULER</h1>
+            <h1 className="text-2xl font-bold text-sidebar-foreground px-2">
+              HAULER
+            </h1>
           </Link>
         </SidebarHeader>
         <SidebarContent>
           <DashboardNav />
         </SidebarContent>
-        <SidebarFooter>
-          {/* Footer content if any */}
-        </SidebarFooter>
+        <SidebarFooter>{/* Footer content if any */}</SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
