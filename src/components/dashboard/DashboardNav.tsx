@@ -12,7 +12,14 @@ import {
   ShoppingBag
 } from 'lucide-react';
 import { useEffect, useState, type ComponentType, type SVGProps } from 'react';
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +34,7 @@ export function DashboardNav() {
     setMounted(true);
   }, []);
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
   type NavLink = {
     href: string;
@@ -42,21 +49,85 @@ export function DashboardNav() {
     { href: '/dashboard/cart', label: 'Cart', icon: ShoppingCart, badge: itemCount > 0 ? itemCount : undefined },
   ];
 
-  const supplierLinks: NavLink[] = [
+  const supplierOverview: NavLink[] = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/products', label: 'Manage Products', icon: Package },
-    { href: '/dashboard/orders', label: 'Manage Orders', icon: ShoppingCart },
+  ];
+  const supplierManagement: NavLink[] = [
+    { href: '/dashboard/products', label: 'Products', icon: Package },
+    { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
+  ];
+  const supplierInsights: NavLink[] = [
     { href: '/dashboard/reports', label: 'AI Reports', icon: BarChart },
   ];
 
-  const links: NavLink[] = userProfile?.role === 'supplier' ? supplierLinks : clientLinks;
+  const isSupplier = userProfile?.role === 'supplier';
+
+  if (isSupplier) {
+    return (
+      <>
+        <SidebarGroup>
+          <SidebarGroupLabel>Overview</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {supplierOverview.map((link) => (
+                <SidebarMenuItem key={link.href}>
+                  <Link href={link.href} className="w-full" aria-current={isActive(link.href) ? 'page' : undefined}>
+                    <SidebarMenuButton isActive={isActive(link.href)} tooltip={link.label}>
+                      <link.icon />
+                      <span>{link.label}</span>
+                    </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {supplierManagement.map((link) => (
+                <SidebarMenuItem key={link.href}>
+                  <Link href={link.href} className="w-full" aria-current={isActive(link.href) ? 'page' : undefined}>
+                    <SidebarMenuButton isActive={isActive(link.href)} tooltip={link.label}>
+                      <link.icon />
+                      <span>{link.label}</span>
+                    </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Insights</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {supplierInsights.map((link) => (
+                <SidebarMenuItem key={link.href}>
+                  <Link href={link.href} className="w-full" aria-current={isActive(link.href) ? 'page' : undefined}>
+                    <SidebarMenuButton isActive={isActive(link.href)} tooltip={link.label}>
+                      <link.icon />
+                      <span>{link.label}</span>
+                    </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </>
+    );
+  }
 
   return (
     <SidebarMenu>
-      {links.map((link) => (
+      {clientLinks.map((link) => (
         <SidebarMenuItem key={link.href}>
-          <Link href={link.href} className="w-full">
-            <SidebarMenuButton isActive={isActive(link.href)}>
+          <Link href={link.href} className="w-full" aria-current={isActive(link.href) ? 'page' : undefined}>
+            <SidebarMenuButton isActive={isActive(link.href)} tooltip={link.label}>
               <link.icon />
               <span>{link.label}</span>
               {mounted && link.badge !== undefined && (

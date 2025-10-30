@@ -6,11 +6,12 @@ import { collection, query, where, getDocs, limit, orderBy } from 'firebase/fire
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { DollarSign, Package, ShoppingCart, Users } from 'lucide-react';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { DollarSign, Package, ShoppingCart, Users, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid } from 'recharts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Order } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 
 const chartData = [
   { name: 'Jan', total: 0 },
@@ -27,12 +28,35 @@ const chartData = [
   { name: 'Dec', total: 0 },
 ];
 
+function RevenueDelta({ salesByMonth }: { salesByMonth: Array<{ name: string; total: number }> }) {
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const prevMonth = (currentMonth + 11) % 12;
+  const cur = salesByMonth[currentMonth]?.total ?? 0;
+  const prev = salesByMonth[prevMonth]?.total ?? 0;
+  const diff = cur - prev;
+  const up = diff >= 0;
+  const pct = prev > 0 ? Math.abs(diff) / prev * 100 : (cur > 0 ? 100 : 0);
+  return (
+    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+      {up ? <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500" /> : <ArrowDownRight className="h-3.5 w-3.5 text-red-500" />}
+      <span className={up ? 'text-emerald-600' : 'text-red-600'}>
+        {up ? '+' : '-'}{pct.toFixed(0)}%
+      </span>
+      <span>vs last month</span>
+    </div>
+  );
+}
+
 export default function SupplierDashboard() {
   const { userProfile } = useAuth();
   const [stats, setStats] = useState({ totalRevenue: 0, totalSales: 0, activeProducts: 0, newClients: 0 });
   const [recentSales, setRecentSales] = useState<Order[]>([]);
   const [salesByMonth, setSalesByMonth] = useState(chartData);
   const [loading, setLoading] = useState(true);
+
+  const currency = (v: number) =>
+    v.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 
   useEffect(() => {
     if (!userProfile) return;
@@ -136,8 +160,8 @@ export default function SupplierDashboard() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">From all completed sales</p>
+                <div className="text-2xl font-bold">{currency(stats.totalRevenue)}</div>
+                <RevenueDelta salesByMonth={salesByMonth} />
               </CardContent>
             </Card>
             <Card>
@@ -162,7 +186,7 @@ export default function SupplierDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Unique IV Clients</CardTitle>
+                <CardTitle className="text-sm font-medium">Unique Clients</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -183,6 +207,7 @@ export default function SupplierDashboard() {
             {loading ? <Skeleton className="h-[350px]" /> :
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={salesByMonth}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
                 <XAxis
                   dataKey="name"
                   stroke="#888888"
@@ -197,6 +222,7 @@ export default function SupplierDashboard() {
                   axisLine={false}
                   tickFormatter={(value) => `$${value}`}
                 />
+                <RechartsTooltip formatter={(v: any) => currency(Number(v) || 0)} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
                 <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>}
@@ -213,7 +239,7 @@ export default function SupplierDashboard() {
                 <Skeleton className="h-10" />
                 <Skeleton className="h-10" />
             </div> : 
-            <div className="space-y-8">
+            <div className="space-y-6">
               {recentSales.map(sale => (
                 <div key={sale.id} className="flex items-center">
                   <Avatar className="h-9 w-9">
@@ -221,11 +247,16 @@ export default function SupplierDashboard() {
                   </Avatar>
                   <div className="ml-4 space-y-1">
                     <p className="text-sm font-medium leading-none">{sale.clientName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(sale.createdAt).toLocaleDateString()}
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(sale.createdAt).toLocaleDateString()} · <span className="font-mono">{sale.id}</span>
                     </p>
                   </div>
-                  <div className="ml-auto font-medium">+${sale.total.toFixed(2)}</div>
+                  <div className="ml-auto flex items-center gap-3">
+                    <Badge variant={sale.status === 'delivered' ? 'outline' : (sale.status === 'shipped' ? 'secondary' : 'default')} className="capitalize">
+                      {sale.status}
+                    </Badge>
+                    <div className="font-medium">+{currency(sale.total)}</div>
+                  </div>
                 </div>
               ))}
               {recentSales.length === 0 && <p className="text-sm text-muted-foreground text-center">No recent sales found.</p>}
