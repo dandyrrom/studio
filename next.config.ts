@@ -1,5 +1,5 @@
 import type {NextConfig} from 'next';
-const firebaseConfig = require('./firebase.config.js');
+//const firebaseConfig = require('./firebase.config.js');
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -31,9 +31,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  env: {
-    NEXT_PUBLIC_FIREBASE_CONFIG: JSON.stringify(firebaseConfig),
-  }
+  //env: {
+   // NEXT_PUBLIC_FIREBASE_CONFIG: JSON.stringify(firebaseConfig),
+  //}
 };
 
 export default nextConfig;
