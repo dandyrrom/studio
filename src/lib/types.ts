@@ -1,5 +1,5 @@
 import type { User as FirebaseUser } from 'firebase/auth';
-import { z } from 'zod'; // <-- ADD THIS IMPORT
+import { z } from 'zod';
 
 export type UserRole = 'supplier' | 'client';
 
@@ -15,7 +15,8 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  imageDataUrl?: string; // Changed from imageUrl/imageHint
+  imageDataUrl?: string;
+  stockQuantity: number; // <-- ADDED THIS LINE
   supplierId: string;
   supplierName: string;
 }
@@ -42,8 +43,6 @@ export interface Order {
   createdAt: Date; 
   supplierId: string;
 }
-
-// --- ADD ALL THE CODE BELOW ---
 
 // Schema for AI Report Input (pre-processed data)
 export const ReportInputSchema = z.object({

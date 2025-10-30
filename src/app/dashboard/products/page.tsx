@@ -9,14 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, PlusCircle, Trash, Edit, Package, Search } from 'lucide-react'; // Added icons
+import { MoreHorizontal, PlusCircle, Trash, Edit, Package, Search } from 'lucide-react';
 import { AddProductDialog } from '@/components/dashboard/AddProductDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input'; // Import Input
-import { Badge } from '@/components/ui/badge'; // Import Badge
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -28,7 +28,6 @@ export default function ProductsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // --- State for Search and Pagination ---
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -68,14 +67,13 @@ export default function ProductsPage() {
     try {
       await deleteDoc(doc(db, 'products', productId));
       toast({ title: 'Success', description: 'Product deleted successfully.' });
-      fetchProducts(); // Refresh the product list
+      fetchProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete product.' });
     }
   };
 
-  // --- Memoized calculations for filtering and pagination ---
   const filteredProducts = useMemo(() => {
     if (!searchTerm) return products;
     return products.filter(
@@ -92,8 +90,6 @@ export default function ProductsPage() {
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
 
-  // --- Render Functions for different states ---
-
   const renderLoadingSkeleton = () => (
     <Table>
       <TableHeader>
@@ -101,21 +97,21 @@ export default function ProductsPage() {
           <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
           <TableHead>Name</TableHead>
           <TableHead className="hidden sm:table-cell">Status</TableHead>
+          <TableHead className="hidden sm:table-cell">Stock</TableHead>
           <TableHead>Price</TableHead>
-          <TableHead className="hidden md:table-cell">Description</TableHead>
           <TableHead>
             <span className="sr-only">Actions</span>
           </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {Array.from({ length: 3 }).map((_, i) => (
+        {Array.from({ length: 5 }).map((_, i) => (
           <TableRow key={i}>
             <TableCell className="hidden sm:table-cell"><Skeleton className="h-16 w-16 rounded-md" /></TableCell>
             <TableCell><Skeleton className="h-4 w-32" /></TableCell>
             <TableCell className="hidden sm:table-cell"><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+            <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-12" /></TableCell>
             <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-            <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-64" /></TableCell>
             <TableCell><Skeleton className="h-8 w-8" /></TableCell>
           </TableRow>
         ))}
@@ -130,8 +126,8 @@ export default function ProductsPage() {
           <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
           <TableHead>Name</TableHead>
           <TableHead className="hidden sm:table-cell">Status</TableHead>
+          <TableHead className="hidden sm:table-cell">Stock</TableHead>
           <TableHead>Price</TableHead>
-          <TableHead className="hidden md:table-cell">Description</TableHead>
           <TableHead>
             <span className="sr-only">Actions</span>
           </TableHead>
@@ -157,13 +153,20 @@ export default function ProductsPage() {
             </TableCell>
             <TableCell className="font-medium">{product.name}</TableCell>
             <TableCell className="hidden sm:table-cell">
-              {/* This is hardcoded for UI demo. You would replace this with product.status */}
-              <Badge variant="outline">Published</Badge>
+              {product.stockQuantity > 0 ? (
+                 <Badge variant="outline">Published</Badge>
+              ) : (
+                <Badge variant="destructive">Archived</Badge>
+              )}
+            </TableCell>
+            <TableCell className="hidden sm:table-cell">
+              {product.stockQuantity > 0 ? (
+                `${product.stockQuantity} in stock`
+              ) : (
+                <span className="text-destructive">Out of Stock</span>
+              )}
             </TableCell>
             <TableCell>${product.price.toFixed(2)}</TableCell>
-            <TableCell className="hidden md:table-cell max-w-xs truncate">
-              {product.description}
-            </TableCell>
             <TableCell>
               <AlertDialog>
                 <DropdownMenu>
@@ -229,7 +232,7 @@ export default function ProductsPage() {
       <h3 className="mt-4 text-xl font-semibold">No Products Found</h3>
       <p className="mt-2 text-muted-foreground">
         Your search for &quot;{searchTerm}&quot; did not match any products.
-      </p>
+      </p> {/* <-- *** THIS IS THE CORRECTED LINE *** */}
       <Button variant="link" onClick={() => setSearchTerm('')}>
         Clear Search
       </Button>
@@ -257,7 +260,6 @@ export default function ProductsPage() {
             renderEmptyState()
           ) : (
             <>
-              {/* --- Search Bar --- */}
               <div className="flex items-center py-4">
                 <div className="relative w-full max-w-sm">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -266,14 +268,13 @@ export default function ProductsPage() {
                     value={searchTerm}
                     onChange={(event) => {
                       setSearchTerm(event.target.value);
-                      setCurrentPage(1); // Reset to first page on new search
+                      setCurrentPage(1);
                     }}
                     className="pl-9"
                   />
                 </div>
               </div>
               
-              {/* --- Table or No Results --- */}
               {paginatedProducts.length > 0
                 ? renderProductTable()
                 : renderNoResults()
@@ -282,7 +283,6 @@ export default function ProductsPage() {
           )}
         </CardContent>
 
-        {/* --- Pagination Footer --- */}
         {!loading && products.length > 0 && totalPages > 1 && (
           <CardFooter>
             <div className="flex items-center justify-between w-full">
