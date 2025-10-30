@@ -1,8 +1,8 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query } from 'firebase/firestore';
+// --- IMPORT 'where' ---
+import { collection, getDocs, query, where } from 'firebase/firestore'; 
 import { db } from '@/lib/firebase';
 import type { Product } from '@/lib/types';
 import { ProductCard } from './ProductCard';
@@ -17,11 +17,22 @@ export default function ClientDashboard() {
       setLoading(true);
       try {
         const productsCollection = collection(db, 'products');
-        const productSnapshot = await getDocs(query(productsCollection));
+        
+        // --- UPDATED QUERY ---
+        // Only fetch products where stockQuantity is greater than 0
+        const productQuery = query(
+          productsCollection, 
+          where("stockQuantity", ">", 0)
+        );
+        // --- END UPDATED QUERY ---
+
+        const productSnapshot = await getDocs(productQuery);
         const productsList = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
         setProducts(productsList);
       } catch (error) {
         console.error("Error fetching products:", error);
+        // This error will likely appear in the console on first run.
+        // See the note about Firestore Index below.
       } finally {
         setLoading(false);
       }

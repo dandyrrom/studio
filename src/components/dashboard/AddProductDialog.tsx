@@ -91,7 +91,8 @@ const formSchema = z.object({
   name: z.string().min(3, { message: 'Product name must be at least 3 characters.' }),
   description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
   price: z.coerce.number().positive({ message: 'Price must be a positive number.' }),
-  stockQuantity: z.coerce.number().int().nonnegative({ message: 'Stock must be 0 or more.' }), // <-- ADDED
+  stockQuantity: z.coerce.number().int().nonnegative({ message: 'Stock must be 0 or more.' }),
+  moq: z.coerce.number().int().positive({ message: 'MOQ must be at least 1.' }), // <-- ADDED
 });
 // --- END UPDATED SCHEMA ---
 
@@ -119,7 +120,8 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
       name: '',
       description: '',
       price: 0,
-      stockQuantity: 0, // <-- ADDED
+      stockQuantity: 0,
+      moq: 1, // <-- ADDED
     },
   });
 
@@ -131,7 +133,8 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
                 name: product.name,
                 description: product.description,
                 price: product.price,
-                stockQuantity: product.stockQuantity, // <-- ADDED
+                stockQuantity: product.stockQuantity,
+                moq: product.moq || 1, // <-- ADDED
             });
             setImageDataUrl(product.imageDataUrl || null);
         } else {
@@ -139,7 +142,8 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
                 name: '',
                 description: '',
                 price: 0,
-                stockQuantity: 0, // <-- ADDED
+                stockQuantity: 0,
+                moq: 1, // <-- ADDED
             });
             setImageDataUrl(null);
         }
@@ -176,7 +180,8 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
         name: values.name,
         description: values.description,
         price: values.price,
-        stockQuantity: values.stockQuantity, // <-- ADDED
+        stockQuantity: values.stockQuantity,
+        moq: values.moq, // <-- ADDED
         imageDataUrl: finalImageDataUrl || null,
         supplierId: userProfile.uid,
         supplierName: userProfile.displayName || 'Unknown Supplier',
@@ -241,8 +246,8 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
                 </FormItem>
               )}
             />
-            {/* --- PRICE AND STOCK ON SAME ROW --- */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* --- PRICE AND STOCK/MOQ ON SAME ROW --- */}
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="price"
@@ -261,7 +266,7 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
                 name="stockQuantity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Stock Quantity</FormLabel>
+                    <FormLabel>Stock Qty</FormLabel>
                     <FormControl>
                       <Input type="number" step="1" placeholder="100" {...field} />
                     </FormControl>
@@ -269,8 +274,21 @@ export function AddProductDialog({ isOpen, setIsOpen, product, onSuccess }: AddP
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="moq"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>MOQ</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="1" placeholder="1" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            {/* --- END PRICE/STOCK ROW --- */}
+            {/* --- END PRICE/STOCK/MOQ ROW --- */}
 
              <FormItem>
                 <FormLabel>Product Image</FormLabel>

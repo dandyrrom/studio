@@ -48,8 +48,13 @@ export default function CartPage() {
   const [couponCode, setCouponCode] = useState("");
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
-    if (newQuantity < 1) {
-      removeFromCart(productId);
+    // Find the product to check its MOQ
+    const item = cart.find(i => i.product.id === productId);
+    const moq = item?.product.moq || 1;
+
+    if (newQuantity < moq) {
+      // Don't remove, just enforce MOQ (updateQuantity will handle it)
+      updateQuantity(productId, newQuantity);
     } else {
       updateQuantity(productId, newQuantity);
     }
@@ -60,7 +65,18 @@ export default function CartPage() {
   };
 
   const handleDecrement = (productId: string, currentQuantity: number) => {
-    handleQuantityChange(productId, currentQuantity - 1);
+    // Find the product to check its MOQ
+    const item = cart.find(i => i.product.id === productId);
+    const moq = item?.product.moq || 1;
+
+    // Prevent decrementing below MOQ, but allow removal if desired
+    // The updateQuantity context logic will catch < MOQ and reset to MOQ
+    const newQuantity = currentQuantity - 1;
+    if (newQuantity < moq) {
+      updateQuantity(productId, newQuantity); // Let context handle toast and reset
+    } else {
+      handleQuantityChange(productId, newQuantity);
+    }
   };
 
   const handleCheckout = async () => {
@@ -248,12 +264,12 @@ export default function CartPage() {
                           </Button>
                           <Input
                             type="number"
-                            min="1"
+                            min={item.product.moq || 1} // <-- SET MIN TO MOQ
                             value={item.quantity}
                             onChange={(e) =>
                               handleQuantityChange(
                                 item.product.id,
-                                parseInt(e.target.value) || 1
+                                parseInt(e.target.value) || (item.product.moq || 1) // Fallback to MOQ
                               )
                             }
                             className="w-16 h-8 text-center"

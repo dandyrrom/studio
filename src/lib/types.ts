@@ -17,6 +17,7 @@ export interface Product {
   price: number;
   imageDataUrl?: string;
   stockQuantity: number; // <-- ADDED THIS LINE
+  moq: number;
   supplierId: string;
   supplierName: string;
 }
