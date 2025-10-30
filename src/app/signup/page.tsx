@@ -106,18 +106,7 @@ export default function ProductsPage() {
                   </TableRow>
                 ))
               ) : products.length > 0 ? (
-                products.map((product) => {
-                  // --- Add this console log ---
-                  console.log(
-                    `Product ID: ${product.id}`,
-                    `imageDataUrl value: "${product.imageDataUrl}"`, // Log the raw value
-                    `Type: ${typeof product.imageDataUrl}`,
-                    `Is truthy?: ${!!product.imageDataUrl}`,
-                    `Length > 0?: ${(product.imageDataUrl?.length || 0) > 0}`
-                  );
-                  // --- End console log ---
-
-                  return (
+                products.map((product) => (
                     <TableRow key={product.id}>
                       {/* *** CORRECTED IMAGE CELL *** */}
                       <TableCell className="hidden sm:table-cell">
@@ -155,8 +144,7 @@ export default function ProductsPage() {
                         </AlertDialog>
                       </TableCell>
                     </TableRow>
-                 );
-               }) // Closing parenthesis for map
+                 )) // Closing parenthesis for map
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
