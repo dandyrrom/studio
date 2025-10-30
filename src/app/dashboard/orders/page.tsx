@@ -76,6 +76,8 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
 
+  const isSupplier = userProfile?.role === "supplier";
+
   const fetchOrders = async () => {
     if (!userProfile) return;
     setLoading(true);
@@ -87,28 +89,31 @@ export default function OrdersPage() {
         orderBy("createdAt", "desc")
       );
       const querySnapshot = await getDocs(q);
-      const ordersList = querySnapshot.docs.map((doc) => {
+
+      const ordersList: Order[] = [];
+      const supplierIds = new Set<string>();
+
+      querySnapshot.forEach(doc => {
         const data = doc.data();
-        return {
+        const order = {
           id: doc.id,
           ...data,
           createdAt: data.createdAt.toDate(),
         } as Order;
+        ordersList.push(order);
+        
+        if (userProfile.role === 'client') {
+          supplierIds.add(order.supplierId);
+        }
       });
+      
       setOrders(ordersList);
       setFilteredOrders(ordersList);
 
       // Preload supplier names for client view
-      if (userProfile.role === "client") {
-        const ids = Array.from(
-          new Set(
-            ordersList
-              .map((o) => o.supplierId)
-              .filter(
-                (id): id is string => typeof id === "string" && id.length > 0
-              )
-          )
-        );
+      if (userProfile.role === "client" && supplierIds.size > 0) {
+        const ids = Array.from(supplierIds);
+        
         if (ids.length > 0) {
           const entries = await Promise.all(
             ids.map(async (uid) => {
@@ -126,6 +131,7 @@ export default function OrdersPage() {
           setSupplierNames(Object.fromEntries(entries));
         }
       }
+      
     } catch (error) {
       console.error("Error fetching orders:", error);
       toast({
@@ -139,7 +145,10 @@ export default function OrdersPage() {
   };
 
   useEffect(() => {
-    fetchOrders();
+    if (userProfile) {
+      fetchOrders();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile]);
 
   // Apply filters whenever filter states change
@@ -354,7 +363,7 @@ export default function OrdersPage() {
       case "shipped":
         return "default";
       case "delivered":
-        return "default";
+        return "outline"; // Changed for better visual distinction
       case "cancelled":
         return "destructive";
       default:
@@ -367,8 +376,6 @@ export default function OrdersPage() {
     setStatusFilter("all");
     setDateFilter("all");
   };
-
-  const isSupplier = userProfile?.role === "supplier";
 
   // Calculate order statistics
   const orderStats = {
@@ -395,6 +402,7 @@ export default function OrdersPage() {
           variant="outline"
           className="gap-2"
           onClick={handleExportOrders}
+          disabled={filteredOrders.length === 0}
         >
           <Download className="h-4 w-4" />
           Export
