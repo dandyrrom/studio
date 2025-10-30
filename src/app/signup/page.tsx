@@ -1,180 +1,162 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { useAuth } from '@/hooks/useAuth';
-import type { Product } from '@/lib/types'; // Uses the updated Product type
-import { Button, buttonVariants } from '@/components/ui/button'; // Corrected import
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, PlusCircle, Trash, Edit } from 'lucide-react';
-import { AddProductDialog } from '@/components/dashboard/AddProductDialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2, User, Building } from 'lucide-react';
+import type { UserRole } from '@/lib/types';
+import { Label } from '@/components/ui/label';
 
-export default function ProductsPage() {
-  const { userProfile } = useAuth();
+const formSchema = z.object({
+  displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Invalid email address.' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  role: z.enum(['client', 'supplier'], { required_error: 'You must select a role.' }),
+});
+
+export default function SignUpPage() {
+  const router = useRouter();
+  const { signUp } = useAuth();
   const { toast } = useToast();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const fetchProducts = async () => {
-    if (!userProfile) return;
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      displayName: '',
+      email: '',
+      password: '',
+      role: 'client',
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     try {
-      const q = query(collection(db, 'products'), where('supplierId', '==', userProfile.uid));
-      const querySnapshot = await getDocs(q);
-      const productsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-      setProducts(productsList);
-    } catch (error) {
-      console.error("Error fetching products: ", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to fetch products.' });
-    } finally {
+      await signUp(values.email, values.password, values.displayName, values.role as UserRole);
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Sign Up Failed',
+        description: error.message || 'An unexpected error occurred. Please try again.',
+      });
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    if (userProfile) {
-        fetchProducts();
-    }
-  }, [userProfile]);
-
-  const handleAddProduct = () => {
-    setSelectedProduct(null);
-    setIsDialogOpen(true);
-  };
-
-  const handleEditProduct = (product: Product) => {
-    setSelectedProduct(product);
-    setIsDialogOpen(true);
-  };
-
-  const handleDeleteProduct = async (productId: string) => {
-    try {
-      await deleteDoc(doc(db, 'products', productId));
-      toast({ title: 'Success', description: 'Product deleted successfully.' });
-      fetchProducts();
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete product.' });
-    }
-  };
+  }
 
   return (
-    <>
-      <div className="flex items-center justify-between space-y-2 mb-6">
-        <h2 className="text-3xl font-bold tracking-tight">MANAGE PRODUCTS TEST</h2>
-        <Button onClick={handleAddProduct}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Product
-        </Button>
-      </div>
-
-      <Card>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Your Product Catalog</CardTitle>
-          <CardDescription>View, edit, and manage all your products.</CardDescription>
+          <CardTitle className="text-2xl">Create an Account</CardTitle>
+          <CardDescription>Join HAULER to streamline your business.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead className="hidden md:table-cell">Description</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="hidden sm:table-cell"><Skeleton className="h-16 w-16 rounded-md" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                    <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-64" /></TableCell>
-                    <TableCell><Skeleton className="h-8 w-8" /></TableCell>
-                  </TableRow>
-                ))
-              ) : products.length > 0 ? (
-                products.map((product) => {
-                  // --- Add this console log ---
-                  console.log(
-                    `Product ID: ${product.id}`,
-                    `imageDataUrl value: "${product.imageDataUrl}"`, // Log the raw value
-                    `Type: ${typeof product.imageDataUrl}`,
-                    `Is truthy?: ${!!product.imageDataUrl}`,
-                    `Length > 0?: ${(product.imageDataUrl?.length || 0) > 0}`
-                  );
-                  // --- End console log ---
-
-                  return (
-                    <TableRow key={product.id}>
-                      {/* *** CORRECTED IMAGE CELL *** */}
-                      <TableCell className="hidden sm:table-cell">
-                        {/* Explicitly check for a non-empty string */}
-                        {product.imageDataUrl && product.imageDataUrl.length > 0 ? (
-                          <Image
-                            alt={product.name}
-                            className="aspect-square rounded-md object-cover"
-                            height={64}
-                            src={product.imageDataUrl} // Now guaranteed to be a non-empty string
-                            width={64}
-                          />
-                        ) : (
-                          // Fallback when imageDataUrl is null, undefined, or empty string
-                          <div className="aspect-square h-16 w-16 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                            No Image
-                          </div>
-                        )}
-                      </TableCell>
-                      {/* *** END CORRECTED IMAGE CELL *** */}
-
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>${product.price.toFixed(2)}</TableCell>
-                      <TableCell className="hidden md:table-cell max-w-xs truncate">
-                        {product.description}
-                      </TableCell>
-                      <TableCell>
-                        <AlertDialog>
-                          <DropdownMenu>
-                            {/* ... rest of the dropdown/dialog code ... */}
-                          </DropdownMenu>
-                          <AlertDialogContent>
-                            {/* ... dialog content ... */}
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </TableCell>
-                    </TableRow>
-                 );
-               }) // Closing parenthesis for map
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    No products found. Click &quot;Add Product&quot; to get started.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="displayName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name or Company Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe Inc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="name@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>I am a...</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="grid grid-cols-2 gap-4"
+                      >
+                        <Label
+                          htmlFor="client"
+                          className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                        >
+                          <RadioGroupItem value="client" id="client" className="sr-only" />
+                          <User className="mb-3 h-6 w-6" />
+                          Client
+                        </Label>
+                        <Label
+                          htmlFor="supplier"
+                          className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                        >
+                          <RadioGroupItem value="supplier" id="supplier" className="sr-only" />
+                          <Building className="mb-3 h-6 w-6" />
+                          Supplier
+                        </Label>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <Loader2 className="animate-spin" /> : 'Create Account'}
+              </Button>
+            </form>
+          </Form>
+          <div className="mt-4 text-center text-sm">
+            Already have an account?{' '}
+            <Link href="/login" className="underline">
+              Login
+            </Link>
+          </div>
+          <div className="mt-2 text-center text-sm">
+            <Link href="/" className="underline">
+              Back to Home
+            </Link>
+          </div>
         </CardContent>
       </Card>
-
-      <AddProductDialog
-        isOpen={isDialogOpen}
-        setIsOpen={setIsDialogOpen}
-        product={selectedProduct}
-        onSuccess={fetchProducts}
-      />
-    </>
+    </div>
   );
 }
