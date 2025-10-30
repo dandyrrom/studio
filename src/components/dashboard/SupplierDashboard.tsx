@@ -48,13 +48,28 @@ export default function SupplierDashboard() {
         const clientIds = new Set<string>();
 
         ordersSnapshot.forEach(doc => {
-          const order = doc.data() as Order;
-          if(order.status === 'delivered' || order.status === 'shipped') {
-            totalRevenue += order.total;
-            const month = new Date(order.createdAt).getMonth();
-            salesByMonthData[month].total += order.total;
+          const data = doc.data() as any;
+          const total = typeof data.total === 'number' ? data.total : Number(data.total) || 0;
+          const createdAt: Date | null = data.createdAt?.toDate
+            ? data.createdAt.toDate()
+            : (data.createdAt ? new Date(data.createdAt) : null);
+          const status = data.status as Order['status'];
+
+          if(status === 'delivered' || status === 'shipped') {
+            totalRevenue += total;
+            if (createdAt && !Number.isNaN(createdAt.getTime())) {
+              const month = createdAt.getMonth();
+              if (month >= 0 && month < salesByMonthData.length) {
+                if (!salesByMonthData[month]) {
+                  salesByMonthData[month] = { name: chartData[month]?.name || String(month + 1), total: 0 } as any;
+                }
+                salesByMonthData[month].total += total;
+              }
+            }
           }
-          clientIds.add(order.clientId);
+          if (typeof data.clientId === 'string' && data.clientId.length > 0) {
+            clientIds.add(data.clientId);
+          }
         });
         
         setSalesByMonth(salesByMonthData);
@@ -69,9 +84,26 @@ export default function SupplierDashboard() {
           newClients: clientIds.size,
         });
 
-        const recentSalesQuery = query(collection(db, 'orders'), where('supplierId', '==', userProfile.uid), orderBy('createdAt', 'desc'), limit(5));
+        const recentSalesQuery = query(
+          collection(db, 'orders'),
+          where('supplierId', '==', userProfile.uid),
+          orderBy('createdAt', 'desc'),
+          limit(5)
+        );
         const recentSalesSnapshot = await getDocs(recentSalesQuery);
-        const sales = recentSalesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+        const sales = recentSalesSnapshot.docs.map(d => {
+          const data = d.data() as any;
+          const createdAt: Date | null = data.createdAt?.toDate
+            ? data.createdAt.toDate()
+            : (data.createdAt ? new Date(data.createdAt) : null);
+          const total = typeof data.total === 'number' ? data.total : Number(data.total) || 0;
+          return {
+            id: d.id,
+            ...data,
+            createdAt: createdAt || new Date(0),
+            total,
+          } as Order;
+        });
         setRecentSales(sales);
 
       } catch (error) {
@@ -130,7 +162,7 @@ export default function SupplierDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Unique Clients</CardTitle>
+                <CardTitle className="text-sm font-medium">Unique IV Clients</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
