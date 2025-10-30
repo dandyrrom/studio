@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-'use client';
-
-import { useState, useEffect, useMemo } from 'react';
-=======
 "use client";
 
 import { useState, useEffect } from "react";
->>>>>>> cmb-sidev1
 import {
   collection,
   query,
@@ -16,24 +10,6 @@ import {
   doc,
   updateDoc,
   getDoc,
-<<<<<<< HEAD
-  documentId,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/useAuth';
-import type { Order, OrderStatus } from '@/lib/types';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Package, Clipboard } from 'lucide-react'; // Added Clipboard icon
-
-const ITEMS_PER_PAGE = 10;
-=======
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
@@ -82,7 +58,6 @@ import {
   User,
   Package,
 } from "lucide-react";
->>>>>>> cmb-sidev1
 
 export default function OrdersPage() {
   const { userProfile } = useAuth();
@@ -101,8 +76,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
 
-  const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
-  const [currentPage, setCurrentPage] = useState(1);
+  const isSupplier = userProfile?.role === "supplier";
 
   const fetchOrders = async () => {
     if (!userProfile) return;
@@ -115,14 +89,11 @@ export default function OrdersPage() {
         orderBy("createdAt", "desc")
       );
       const querySnapshot = await getDocs(q);
-<<<<<<< HEAD
+
       const ordersList: Order[] = [];
       const supplierIds = new Set<string>();
 
       querySnapshot.forEach(doc => {
-=======
-      const ordersList = querySnapshot.docs.map((doc) => {
->>>>>>> cmb-sidev1
         const data = doc.data();
         const order = {
           id: doc.id,
@@ -139,30 +110,10 @@ export default function OrdersPage() {
       setOrders(ordersList);
       setFilteredOrders(ordersList);
 
-<<<<<<< HEAD
-      if (userProfile.role === 'client' && supplierIds.size > 0) {
-        const suppliersQuery = query(
-          collection(db, 'users'),
-          where(documentId(), 'in', Array.from(supplierIds))
-        );
-        const suppliersSnapshot = await getDocs(suppliersQuery);
-        const namesMap: Record<string, string> = {};
-        suppliersSnapshot.forEach(doc => {
-          namesMap[doc.id] = doc.data().displayName || 'Unknown Supplier';
-        });
-        setSupplierNames(namesMap);
-=======
       // Preload supplier names for client view
-      if (userProfile.role === "client") {
-        const ids = Array.from(
-          new Set(
-            ordersList
-              .map((o) => o.supplierId)
-              .filter(
-                (id): id is string => typeof id === "string" && id.length > 0
-              )
-          )
-        );
+      if (userProfile.role === "client" && supplierIds.size > 0) {
+        const ids = Array.from(supplierIds);
+        
         if (ids.length > 0) {
           const entries = await Promise.all(
             ids.map(async (uid) => {
@@ -179,7 +130,6 @@ export default function OrdersPage() {
           );
           setSupplierNames(Object.fromEntries(entries));
         }
->>>>>>> cmb-sidev1
       }
       
     } catch (error) {
@@ -198,6 +148,7 @@ export default function OrdersPage() {
     if (userProfile) {
       fetchOrders();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userProfile]);
 
   // Apply filters whenever filter states change
@@ -271,22 +222,6 @@ export default function OrdersPage() {
       );
       toast({ title: "Success", description: "Order status updated." });
     } catch (error) {
-<<<<<<< HEAD
-      console.error("Error updating status:", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update order status.' });
-    }
-  };
-  
-  const getStatusVariant = (status: OrderStatus) => {
-    switch(status) {
-        case 'pending': return 'default';
-        case 'shipped': return 'secondary';
-        case 'delivered': return 'outline';
-        case 'cancelled': return 'destructive';
-        default: return 'default';
-    }
-  }
-=======
       toast({
         variant: "destructive",
         title: "Error",
@@ -294,7 +229,6 @@ export default function OrdersPage() {
       });
     }
   };
->>>>>>> cmb-sidev1
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
@@ -429,7 +363,7 @@ export default function OrdersPage() {
       case "shipped":
         return "default";
       case "delivered":
-        return "default";
+        return "outline"; // Changed for better visual distinction
       case "cancelled":
         return "destructive";
       default:
@@ -443,8 +377,6 @@ export default function OrdersPage() {
     setDateFilter("all");
   };
 
-  const isSupplier = userProfile?.role === "supplier";
-
   // Calculate order statistics
   const orderStats = {
     total: orders.length,
@@ -453,195 +385,8 @@ export default function OrdersPage() {
     delivered: orders.filter((o) => o.status === "delivered").length,
   };
 
-  const filteredOrders = useMemo(() => {
-    if (statusFilter === 'all') return orders;
-    return orders.filter((order) => order.status === statusFilter);
-  }, [orders, statusFilter]);
-
-  const paginatedOrders = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredOrders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredOrders, currentPage]);
-
-  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
-
-  const renderLoadingSkeleton = () => (
-    Array.from({ length: 5 }).map((_, i) => (
-      <TableRow key={i}>
-        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-        <TableCell><Skeleton className="h-8 w-28" /></TableCell>
-      </TableRow>
-    ))
-  );
-  
-  const renderEmptyState = () => (
-    <div className="flex flex-col items-center justify-center space-y-4 py-16 text-center">
-      <Package className="h-16 w-16 text-muted-foreground" />
-      <h3 className="text-xl font-semibold">No Orders Found</h3>
-      <p className="text-muted-foreground">
-        {isSupplier 
-          ? "You haven't received any orders yet." 
-          : "You haven't placed any orders yet."
-        }
-      </p>
-    </div>
-  );
-  
-  const renderNoResults = () => (
-    <TableRow>
-      <TableCell colSpan={5} className="h-24 text-center">
-        No orders found for the &quot;{statusFilter}&quot; status.
-      </TableCell>
-    </TableRow>
-  );
-
   return (
     <div className="space-y-6">
-<<<<<<< HEAD
-      <h2 className="text-3xl font-bold tracking-tight">
-        {isSupplier ? 'Manage Orders' : 'Your Orders'}
-      </h2>
-      
-      <Tabs defaultValue="all" onValueChange={(value) => {
-        setStatusFilter(value as OrderStatus | 'all');
-        setCurrentPage(1);
-      }}>
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="shipped">Shipped</TabsTrigger>
-          <TabsTrigger value="delivered">Delivered</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
-        </TabsList>
-        <TabsContent value={statusFilter}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Order History</CardTitle>
-              <CardDescription>
-                {isSupplier ? "A list of all orders from your clients." : "A list of your past orders."}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>{isSupplier ? 'Client' : 'Supplier'}</TableHead>
-                      <TableHead>Order Date</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {renderLoadingSkeleton()}
-                  </TableBody>
-                </Table>
-              ) : orders.length === 0 ? (
-                renderEmptyState()
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>{isSupplier ? 'Client' : 'Supplier'}</TableHead>
-                      <TableHead>Order Date</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedOrders.length > 0 ? paginatedOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        {/* --- UPDATED CELL --- */}
-                        <TableCell className="font-mono text-xs">
-                          <div className="flex items-center gap-2">
-                            <span>...{order.id.slice(-6)}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => {
-                                navigator.clipboard.writeText(order.id);
-                                toast({ title: "Copied!", description: "Order ID copied to clipboard." });
-                              }}
-                            >
-                              <Clipboard className="h-3 w-3" />
-                              <span className="sr-only">Copy Order ID</span>
-                            </Button>
-                          </div>
-                        </TableCell>
-                        {/* --- END UPDATED CELL --- */}
-                        
-                        <TableCell>
-                          {isSupplier ? order.clientName : (supplierNames[order.supplierId] || <Skeleton className="h-4 w-32" />)}
-                        </TableCell>
-                        <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>${order.total.toFixed(2)}</TableCell>
-                        <TableCell>
-                          {isSupplier ? (
-                            <Select
-                              defaultValue={order.status}
-                              onValueChange={(value) => handleStatusChange(order.id, value as OrderStatus)}
-                            >
-                              <SelectTrigger className="w-[120px]">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="shipped">Shipped</SelectItem>
-                                <SelectItem value="delivered">Delivered</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <Badge variant={getStatusVariant(order.status)} className="capitalize">{order.status}</Badge>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    )) : (
-                      renderNoResults()
-                    )}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-
-            {!loading && orders.length > 0 && totalPages > 1 && (
-              <CardFooter>
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              </CardFooter>
-            )}
-
-          </Card>
-        </TabsContent>
-      </Tabs>
-=======
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">
@@ -657,6 +402,7 @@ export default function OrdersPage() {
           variant="outline"
           className="gap-2"
           onClick={handleExportOrders}
+          disabled={filteredOrders.length === 0}
         >
           <Download className="h-4 w-4" />
           Export
@@ -1009,7 +755,6 @@ export default function OrdersPage() {
           )}
         </DialogContent>
       </Dialog>
->>>>>>> cmb-sidev1
     </div>
   );
 }
